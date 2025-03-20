@@ -36,13 +36,13 @@ class ReceiptController extends Controller
     {
         $validated = $request->validate([
             'receipt_url' => 'required|url',
-            'purchase_date' => 'required|date',
+            'purchase_date' => 'nullable|date',
         ]);
 
         try {
             $receipt = $this->receiptParser->parseReceipt(
                 $validated['receipt_url'],
-                $validated['purchase_date']
+                $validated['purchase_date'] ?? null
             );
 
             return redirect()->route('receipts.index')

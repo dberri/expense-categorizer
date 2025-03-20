@@ -17,7 +17,7 @@ class ReceiptParserService
         $this->openaiApiKey = config('services.openai.api_key');
     }
 
-    public function parseReceipt(string $url, string $purchaseDate): Receipt
+    public function parseReceipt(string $url, ?string $purchaseDate = null): Receipt
     {
         Log::info("Starting receipt parsing process", ['url' => $url, 'date' => $purchaseDate]);
         
@@ -36,6 +36,21 @@ class ReceiptParserService
 
             $html = $response->body();
             Log::debug("Successfully fetched HTML content", ['size' => strlen($html)]);
+            
+            // Extract date from HTML if not provided
+            if (!$purchaseDate) {
+                $purchaseDate = $this->extractDateFromHtml($html);
+                if (!$purchaseDate) {
+                    throw new \Exception('Could not find purchase date in receipt');
+                }
+            }
+            
+            // Convert date format from DD/MM/YYYY to YYYY-MM-DD
+            $date = \DateTime::createFromFormat('d/m/Y H:i:s', $purchaseDate);
+            if (!$date) {
+                throw new \Exception('Invalid date format in receipt');
+            }
+            $purchaseDate = $date->format('Y-m-d');
             
             // Extract items from the HTML table
             Log::info("Extracting items from HTML");
@@ -667,5 +682,47 @@ class ReceiptParserService
         
         // Trim and convert to lowercase
         return trim(strtolower($name));
+    }
+
+    private function extractDateFromHtml(string $html): ?string
+    {
+        try {
+            $dom = new \DOMDocument();
+            @$dom->loadHTML($html, LIBXML_NOERROR);
+            $xpath = new \DOMXPath($dom);
+
+            // Look for text containing "Emissão" followed by a date pattern
+            $nodes = $xpath->query('//text()[contains(., "Emissão")]');
+            
+            foreach ($nodes as $node) {
+                $text = $node->textContent;
+                // Look for the date pattern after "Emissão"
+                if (preg_match('/Emissão\s*:\s*(\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2})/', $text, $matches)) {
+                    return $matches[1];
+                }
+            }
+
+            // If not found, try a broader search for the date pattern
+            $allText = $xpath->query('//text()');
+            foreach ($allText as $node) {
+                $text = $node->textContent;
+                if (preg_match('/(\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2})/', $text, $matches)) {
+                    // Verify this is a valid date
+                    $date = \DateTime::createFromFormat('d/m/Y H:i:s', $matches[1]);
+                    if ($date) {
+                        return $matches[1];
+                    }
+                }
+            }
+
+            Log::warning("Could not find valid date in receipt HTML");
+            return null;
+        } catch (\Exception $e) {
+            Log::error("Error extracting date from HTML", [
+                'exception' => get_class($e),
+                'message' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 } 
