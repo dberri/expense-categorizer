@@ -15,6 +15,7 @@ class ReceiptController extends Controller
 
     public function index()
     {
+        // Get monthly breakdown by category
         $monthlyBreakdown = Receipt::select(
             DB::raw('YEAR(purchase_date) as year'),
             DB::raw('MONTH(purchase_date) as month'),
@@ -27,9 +28,26 @@ class ReceiptController extends Controller
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc')
             ->get()
+            ->groupBy(['year', 'month'])
+            ->map(function ($months) {
+                return $months->map(function ($categories) {
+                    return $categories->sortByDesc('total_amount')->values();
+                });
+            });
+
+        // Get monthly totals
+        $monthlyTotals = Receipt::select(
+            DB::raw('YEAR(purchase_date) as year'),
+            DB::raw('MONTH(purchase_date) as month'),
+            DB::raw('SUM(total_amount) as total_amount')
+        )
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->get()
             ->groupBy(['year', 'month']);
 
-        return view('receipts.index', compact('monthlyBreakdown'));
+        return view('receipts.index', compact('monthlyBreakdown', 'monthlyTotals'));
     }
 
     public function store(Request $request)
