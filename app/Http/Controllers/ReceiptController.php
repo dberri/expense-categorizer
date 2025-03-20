@@ -37,9 +37,36 @@ class ReceiptController extends Controller
         $validated = $request->validate([
             'receipt_url' => 'required|url',
             'purchase_date' => 'nullable|date',
+            'overwrite' => 'boolean',
         ]);
 
         try {
+            // Check if receipt already exists
+            $existingReceipt = Receipt::where('receipt_url', $validated['receipt_url'])->first();
+            
+            if ($existingReceipt) {
+                if ($request->input('overwrite', false)) {
+                    // Delete the existing receipt and its related data
+                    $this->deleteReceipt($existingReceipt);
+                    
+                    // Process the new receipt
+                    $receipt = $this->receiptParser->parseReceipt(
+                        $validated['receipt_url'],
+                        $validated['purchase_date'] ?? null
+                    );
+
+                    return redirect()->route('receipts.index')
+                        ->with('success', 'Receipt updated successfully!');
+                } else {
+                    // Return to the form with a warning and the existing receipt ID
+                    return back()
+                        ->withInput()
+                        ->with('warning', 'A receipt with this URL already exists.')
+                        ->with('existing_receipt_id', $existingReceipt->id);
+                }
+            }
+
+            // Process new receipt
             $receipt = $this->receiptParser->parseReceipt(
                 $validated['receipt_url'],
                 $validated['purchase_date'] ?? null
@@ -50,6 +77,21 @@ class ReceiptController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to process receipt: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Delete a receipt and all its related data
+     */
+    private function deleteReceipt(Receipt $receipt): void
+    {
+        // Delete all item category mappings
+        \App\Models\ReceiptItemCategory::where('receipt_id', $receipt->id)->delete();
+        
+        // Detach all categories
+        $receipt->categories()->detach();
+        
+        // Delete the receipt
+        $receipt->delete();
     }
 
     public function show(Receipt $receipt)

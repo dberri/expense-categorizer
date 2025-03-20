@@ -22,26 +22,7 @@
             </div>
         @endif
 
-        <div class="p-6 mb-8 bg-white rounded-lg shadow-md">
-            <h2 class="mb-4 text-xl font-semibold">Add New Receipt</h2>
-            <form action="{{ route('receipts.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label for="receipt_url" class="block text-sm font-medium text-gray-700">Receipt URL</label>
-                    <input type="url" name="receipt_url" id="receipt_url" required
-                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label for="purchase_date" class="block text-sm font-medium text-gray-700">Purchase Date</label>
-                    <input type="date" name="purchase_date" id="purchase_date"
-                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-                <button type="submit"
-                    class="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                    Process Receipt
-                </button>
-            </form>
-        </div>
+        <x-add-new-receipt />
 
         <div class="p-6 bg-white rounded-lg shadow-md">
             <h2 class="mb-4 text-xl font-semibold">Monthly Breakdown</h2>
