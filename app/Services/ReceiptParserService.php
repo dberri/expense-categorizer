@@ -238,16 +238,44 @@ class ReceiptParserService
             @$dom->loadHTML($html, LIBXML_NOERROR);
             $xpath = new \DOMXPath($dom);
 
-            // Look for the total amount line in the receipt footer
-            $totalNode = $xpath->query('//div[@id="totalNota"]//div[@id="linhaTotal"][.//label[contains(text(), "Valor total")]]//span[@class="totalNumb"]')->item(0);
-            
-            if ($totalNode) {
-                $totalValue = floatval(str_replace(',', '.', $totalNode->textContent));
-                Log::debug("Extracted total amount value", ['value' => $totalValue]);
-                return $totalValue;
+            // Try different selectors in order of specificity
+            $selectors = [
+                // Look for the total amount line in the receipt footer with specific label
+                '//div[@id="totalNota"]//div[@id="linhaTotal"][.//label[contains(text(), "Valor total")]]//span[@class="totalNumb"]',
+                // Look for any element with both classes
+                '//span[contains(@class, "totalNumb") and contains(@class, "txtMax")]',
+                // Look for text containing "Valor a pagar R$:" followed by the amount
+                '//text()[contains(., "Valor a pagar R$:")]/following-sibling::text()[1]',
+                // Look for any element with class totalNumb
+                '//span[@class="totalNumb"]',
+            ];
+
+            foreach ($selectors as $selector) {
+                $node = $xpath->query($selector)->item(0);
+                if ($node) {
+                    $text = trim($node->textContent);
+                    
+                    // Clean up the text by removing currency symbols and spaces
+                    $text = preg_replace('/[^\d,.]/', '', $text);
+                    
+                    // Convert comma to dot for decimal point
+                    $text = str_replace(',', '.', $text);
+                    
+                    // Convert to float
+                    $value = floatval($text);
+                    
+                    if ($value > 0) {
+                        Log::debug("Extracted total amount value", [
+                            'value' => $value,
+                            'selector' => $selector,
+                            'original_text' => $node->textContent
+                        ]);
+                        return $value;
+                    }
+                }
             }
 
-            Log::warning("Total amount node not found in HTML");
+            Log::warning("Total amount node not found in HTML with any of the selectors");
             return 0;
         } catch (\Exception $e) {
             Log::error("Error extracting total amount", [
