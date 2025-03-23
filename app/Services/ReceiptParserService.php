@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Receipt;
 use App\Models\Category;
+use App\Models\ReceiptItemCategory;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -17,7 +18,7 @@ class ReceiptParserService
         $this->openaiApiKey = config('services.openai.api_key');
     }
 
-    public function parseReceipt(string $url, ?string $purchaseDate = null): Receipt
+    public function parseReceipt(string $url, ?string $purchaseDate = null, int $userId): Receipt
     {
         Log::info("Starting receipt parsing process", ['url' => $url, 'date' => $purchaseDate]);
         
@@ -113,12 +114,13 @@ class ReceiptParserService
                 'total_discount' => $totalDiscount,
                 'raw_items' => $items,
                 'original_items' => $originalItems, // Store the original unbundled items as well
+                'user_id' => $userId,
             ]);
             Log::info("Receipt record created", ['receipt_id' => $receipt->id]);
 
             // Categorize items using OpenAI
             Log::info("Starting item categorization with OpenAI");
-            $this->categorizeItems($receipt);
+            $this->categorizeItems($receipt, $userId);
             Log::info("Receipt categorization completed", ['receipt_id' => $receipt->id]);
 
             return $receipt;
@@ -313,7 +315,7 @@ class ReceiptParserService
         }
     }
 
-    private function categorizeItems(Receipt $receipt): void
+    private function categorizeItems(Receipt $receipt, int $userId): void
     {
         try {
             $items = $receipt->raw_items;
@@ -450,7 +452,7 @@ class ReceiptParserService
             
             // Clear any existing item category mappings for this receipt
             Log::info("Clearing any existing item category mappings", ['receipt_id' => $receipt->id]);
-            \App\Models\ReceiptItemCategory::where('receipt_id', $receipt->id)->delete();
+            ReceiptItemCategory::where('receipt_id', $receipt->id)->delete();
             
             // Keep track of items that have already been processed to avoid duplicates
             $processedItemIndices = [];
@@ -466,7 +468,7 @@ class ReceiptParserService
                 }
                 
                 Log::debug("Creating or finding category", ['name' => $categoryName]);
-                $category = \App\Models\Category::firstOrCreate(['name' => $categoryName]);
+                $category = Category::firstOrCreate(['name' => $categoryName, 'user_id' => $userId]);
                 
                 $total = 0;
                 $itemsProcessed = 0;

@@ -11,10 +11,13 @@ class ReceiptController extends Controller
 {
     public function __construct(private ReceiptParserService $receiptParser)
     {
+        //
     }
 
     public function index()
     {
+        $userId = auth()->id();
+        
         // Get monthly breakdown by category
         $monthlyBreakdown = Receipt::select(
             DB::raw('YEAR(purchase_date) as year'),
@@ -24,6 +27,7 @@ class ReceiptController extends Controller
         )
             ->join('receipt_categories', 'receipts.id', '=', 'receipt_categories.receipt_id')
             ->join('categories', 'receipt_categories.category_id', '=', 'categories.id')
+            ->where('receipts.user_id', $userId)
             ->groupBy('year', 'month', 'categories.name')
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc')
@@ -41,6 +45,7 @@ class ReceiptController extends Controller
             DB::raw('MONTH(purchase_date) as month'),
             DB::raw('SUM(total_amount) as total_amount')
         )
+            ->where('user_id', $userId)
             ->groupBy('year', 'month')
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc')
@@ -59,8 +64,12 @@ class ReceiptController extends Controller
         ]);
 
         try {
-            // Check if receipt already exists
-            $existingReceipt = Receipt::where('receipt_url', $validated['receipt_url'])->first();
+            $userId = auth()->id();
+            
+            // Check if receipt already exists for this user
+            $existingReceipt = Receipt::where('receipt_url', $validated['receipt_url'])
+                ->where('user_id', $userId)
+                ->first();
             
             if ($existingReceipt) {
                 if ($request->input('overwrite', false)) {
@@ -70,7 +79,8 @@ class ReceiptController extends Controller
                     // Process the new receipt
                     $receipt = $this->receiptParser->parseReceipt(
                         $validated['receipt_url'],
-                        $validated['purchase_date'] ?? null
+                        $validated['purchase_date'] ?? null,
+                        $userId
                     );
 
                     return redirect()->route('receipts.index')
@@ -87,7 +97,8 @@ class ReceiptController extends Controller
             // Process new receipt
             $receipt = $this->receiptParser->parseReceipt(
                 $validated['receipt_url'],
-                $validated['purchase_date'] ?? null
+                $validated['purchase_date'] ?? null,
+                $userId
             );
 
             return redirect()->route('receipts.index')
@@ -114,6 +125,11 @@ class ReceiptController extends Controller
 
     public function show(Receipt $receipt)
     {
+        // Ensure the user can only view their own receipts
+        if ($receipt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         // Get all categories for this receipt
         $receiptCategories = $receipt->categories()->get();
         
@@ -379,6 +395,11 @@ class ReceiptController extends Controller
      */
     public function destroy(Receipt $receipt)
     {
+        // Ensure the user can only delete their own receipts
+        if ($receipt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         try {
             // Begin transaction to ensure all related data is deleted properly
             DB::beginTransaction();

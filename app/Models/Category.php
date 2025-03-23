@@ -10,8 +10,24 @@ class Category extends Model
 {
     protected $fillable = [
         'name',
-        'description',
+        'user_id',
     ];
+
+    /**
+     * Scope a query to only include categories for the current user.
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Get the user that owns the category.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function receipts(): BelongsToMany
     {

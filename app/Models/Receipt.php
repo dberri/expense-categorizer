@@ -9,21 +9,36 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Receipt extends Model
 {
     protected $fillable = [
-        'purchase_date',
         'receipt_url',
+        'purchase_date',
+        'raw_items',
         'total_amount',
         'total_discount',
-        'raw_items',
-        'original_items',
+        'user_id',
     ];
 
     protected $casts = [
         'purchase_date' => 'date',
         'raw_items' => 'array',
-        'original_items' => 'array',
         'total_amount' => 'decimal:2',
         'total_discount' => 'decimal:2',
     ];
+
+    /**
+     * Scope a query to only include receipts for the current user.
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Get the user that owns the receipt.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function categories(): BelongsToMany
     {
