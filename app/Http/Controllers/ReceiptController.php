@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ItemCategoryPattern;
 use App\Models\Receipt;
 use App\Services\ReceiptParserService;
 use Illuminate\Http\Request;
@@ -216,13 +217,19 @@ class ReceiptController extends Controller
             // Strip counter from item name before adding pattern
             $patternName = $this->stripCounterFromName($receiptItem->item_name);
             
-            // Add the pattern to the new category
-            $newCategory->addPattern($patternName, $matchType);
+            // Find any existing pattern with this name
+            $existingPattern = ItemCategoryPattern::where('pattern', $patternName)
+                ->where('match_type', $matchType)
+                ->first();
             
-            // Delete any matching patterns in other categories to avoid conflicts
-            \App\Models\ItemCategoryPattern::where('pattern', $patternName)
-                ->where('category_id', '!=', $newCategory->id)
-                ->delete();
+            if ($existingPattern) {
+                // If pattern exists, update its category
+                $existingPattern->category_id = $newCategory->id;
+                $existingPattern->save();
+            } else {
+                // If no pattern exists, create a new one
+                $newCategory->addPattern($patternName, $matchType);
+            }
         }
         
         // Recalculate totals for the affected categories
