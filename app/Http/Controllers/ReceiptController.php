@@ -157,10 +157,14 @@ class ReceiptController extends Controller
                         $rawItem['_filtered'] = true;
                     }
                     
+                    // Get quantity from raw item data
+                    $quantity = $rawItem['quantity'] ?? 1;
+                    
                     return [
                         'receipt_item_id' => $item->id,
                         'name' => $item->item_name,
                         'price' => $item->item_price,
+                        'quantity' => $quantity,
                         'raw_data' => $rawItem ? array_merge(['index' => $item->item_index], $rawItem) : null,
                         '_filtered' => $rawItem['_filtered'] ?? false
                     ];

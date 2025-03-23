@@ -101,10 +101,19 @@
                                                     data-category="{{ $categoryName }}" 
                                                     data-item-index="{{ $item['raw_data']['index'] }}"
                                                     data-item-name="{{ $item['name'] }}">
-                                                {{ $item['name'] }}
-                                                @if(isset($item['raw_data']['bundled_from']))
-                                                    <span class="ml-2 text-xs text-green-600">(Bundle of {{ count($item['raw_data']['bundled_from']) }} items)</span>
-                                                @endif
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="text-sm font-medium text-gray-900">
+                                                        {{ $item['name'] }}
+                                                        @if($item['quantity'] > 1)
+                                                            <span class="text-gray-500">({{ $item['quantity'] }}x)</span>
+                                                        @endif
+                                                    </span>
+                                                    @if(isset($item['raw_data']['bundled_from']))
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                            Bundled
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">

@@ -667,18 +667,6 @@ class ReceiptParserService
                 }
                 $bundledItems[$existingIndex]['bundled_indices'][] = $index;
                 
-                // Update the display name to include count if not already done
-                if (strpos($existingItem['name'], ' (') === false) {
-                    $bundledItems[$existingIndex]['name'] = $existingItem['name'] . " ({$newQuantity}x)";
-                } else {
-                    // Replace the count in the existing name
-                    $bundledItems[$existingIndex]['name'] = preg_replace(
-                        '/\(\d+x\)/', 
-                        "({$newQuantity}x)", 
-                        $existingItem['name']
-                    );
-                }
-                
                 Log::debug("Bundled items", [
                     'normalized_name' => $normalizedName,
                     'original_name' => $item['name'],
