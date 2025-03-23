@@ -4,41 +4,41 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Receipt Details - Expense Categorizer</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
 <body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
+    <div class="container px-4 py-8 mx-auto">
         <div class="flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold">Receipt Details</h1>
             <div class="flex space-x-2">
                 <form id="deleteReceiptForm" action="{{ route('receipts.destroy', $receipt) }}" method="POST" class="inline">
                     @csrf
                     @method('DELETE')
-                    <button type="button" onclick="openDeleteModal()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    <button type="button" onclick="openDeleteModal()" class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700">
                         Delete Receipt
                     </button>
                 </form>
-                <a href="{{ route('receipts.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                <a href="{{ route('receipts.index') }}" class="px-4 py-2 text-white bg-gray-600 rounded hover:bg-gray-700">
                     Back to List
                 </a>
             </div>
         </div>
 
         @if (session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <div class="px-4 py-3 mb-4 text-green-700 bg-green-100 border border-green-400 rounded">
                 {{ session('success') }}
             </div>
         @endif
 
         @if (session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <div class="px-4 py-3 mb-4 text-red-700 bg-red-100 border border-red-400 rounded">
                 {{ session('error') }}
             </div>
         @endif
 
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">Receipt Information</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-6 mb-8 bg-white rounded-lg shadow-md">
+            <h2 class="mb-4 text-xl font-semibold">Receipt Information</h2>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                     <p class="text-gray-600">Date:</p>
                     <p class="font-medium">{{ $receipt->purchase_date->format('F j, Y') }}</p>
@@ -58,11 +58,11 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">Categorized Items</h2>
+        <div class="p-6 bg-white rounded-lg shadow-md">
+            <h2 class="mb-4 text-xl font-semibold">Categorized Items</h2>
             
             <div class="mb-4">
-                <button id="bundleItemsBtn" type="button" class="bg-green-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <button id="bundleItemsBtn" type="button" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     Bundle Selected Items
                 </button>
             </div>
@@ -71,23 +71,23 @@
                 <div class="mb-8">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-medium">{{ $categoryName }}</h3>
-                        <span class="text-gray-600 font-semibold">R$ {{ number_format($category['total'], 2) }}</span>
+                        <span class="font-semibold text-gray-600">R$ {{ number_format($category['total'], 2) }}</span>
                     </div>
                     <div class="mt-2 overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                                         <div class="flex items-center">
-                                            <input type="checkbox" class="category-select-all h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mr-2"
+                                            <input type="checkbox" class="w-4 h-4 mr-2 text-indigo-600 border-gray-300 rounded category-select-all focus:ring-indigo-500"
                                                 data-category="{{ $categoryName }}">
                                             Item
                                         </div>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">
                                         Price
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                                         Actions
                                     </th>
                                 </tr>
@@ -95,9 +95,9 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($category['items'] as $item)
                                     <tr class="@if(isset($item['raw_data']['bundled_from'])) font-semibold @endif">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <input type="checkbox" class="item-select h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mr-2"
+                                                <input type="checkbox" class="w-4 h-4 mr-2 text-indigo-600 border-gray-300 rounded item-select focus:ring-indigo-500"
                                                     data-category="{{ $categoryName }}" 
                                                     data-item-index="{{ $item['raw_data']['index'] }}"
                                                     data-item-name="{{ $item['name'] }}">
@@ -116,11 +116,11 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                        <td class="px-6 py-4 text-sm text-right text-gray-500 whitespace-nowrap">
                                             R$ {{ number_format($item['price'], 2) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            <button onclick="openChangeCategoryModal('{{ $item['name'] }}', {{ $item['receipt_item_id'] }})" class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700">
+                                        <td class="px-6 py-4 text-sm text-center text-gray-500 whitespace-nowrap">
+                                            <button onclick="openChangeCategoryModal('{{ $item['name'] }}', {{ $item['receipt_item_id'] }})" class="px-3 py-1 text-xs text-white bg-blue-600 rounded-md hover:bg-blue-700">
                                                 Change Category
                                             </button>
                                         </td>
@@ -135,12 +135,12 @@
     </div>
 
     <!-- Category Change Modal -->
-    <div id="changeCategoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <div class="flex justify-between items-center mb-4">
+    <div id="changeCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+        <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium">Change Item Category</h3>
                 <button onclick="closeChangeCategoryModal()" class="text-gray-400 hover:text-gray-500">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
@@ -150,12 +150,12 @@
                 <input type="hidden" name="receipt_item_id" id="receiptItemId">
                 
                 <div class="mb-4">
-                    <p class="text-sm text-gray-500 mb-2">Item: <span id="modalItemName" class="font-medium"></span></p>
+                    <p class="mb-2 text-sm text-gray-500">Item: <span id="modalItemName" class="font-medium"></span></p>
                 </div>
                 
                 <div class="mb-4">
-                    <label for="new_category_id" class="block text-sm font-medium text-gray-700 mb-1">New Category</label>
-                    <select id="new_category_id" name="new_category_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <label for="new_category_id" class="block mb-1 text-sm font-medium text-gray-700">New Category</label>
+                    <select id="new_category_id" name="new_category_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @foreach (App\Models\Category::orderBy('name')->get() as $category)
                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach
@@ -164,29 +164,29 @@
                 
                 <div class="mb-4">
                     <div class="flex items-center">
-                        <input type="checkbox" id="learn_pattern" name="learn_pattern" value="1" checked class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <label for="learn_pattern" class="ml-2 block text-sm text-gray-700">
+                        <input type="checkbox" id="learn_pattern" name="learn_pattern" value="1" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <label for="learn_pattern" class="block ml-2 text-sm text-gray-700">
                             Remember this categorization for future items
                         </label>
                     </div>
                 </div>
                 
                 <div id="patternOptions" class="mb-4">
-                    <label for="pattern_match_type" class="block text-sm font-medium text-gray-700 mb-1">Match Type</label>
-                    <select id="pattern_match_type" name="pattern_match_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <label for="pattern_match_type" class="block mb-1 text-sm font-medium text-gray-700">Match Type</label>
+                    <select id="pattern_match_type" name="pattern_match_type" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="exact">Exact Match</option>
                         <option value="contains">Contains</option>
                         <option value="starts_with">Starts With</option>
                         <option value="ends_with">Ends With</option>
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">This determines how similar items will be matched in the future.</p>
+                    <p class="mt-1 text-xs text-gray-500">This determines how similar items will be matched in the future.</p>
                 </div>
                 
                 <div class="flex justify-end">
-                    <button type="button" onclick="closeChangeCategoryModal()" class="bg-gray-100 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2">
+                    <button type="button" onclick="closeChangeCategoryModal()" class="px-4 py-2 mr-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Change Category
                     </button>
                 </div>
@@ -195,12 +195,12 @@
     </div>
 
     <!-- Bundle Items Modal -->
-    <div id="bundleItemsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <div class="flex justify-between items-center mb-4">
+    <div id="bundleItemsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+        <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium">Bundle Items</h3>
                 <button onclick="closeBundleModal()" class="text-gray-400 hover:text-gray-500">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
@@ -211,21 +211,21 @@
                 <div id="bundleItemIndices"></div>
                 
                 <div class="mb-4">
-                    <p class="text-sm text-gray-500 mb-2">Selected Items:</p>
-                    <ul id="selectedItemsList" class="bg-gray-50 p-3 rounded-md max-h-40 overflow-y-auto text-sm"></ul>
+                    <p class="mb-2 text-sm text-gray-500">Selected Items:</p>
+                    <ul id="selectedItemsList" class="p-3 overflow-y-auto text-sm rounded-md bg-gray-50 max-h-40"></ul>
                 </div>
                 
                 <div class="mb-4">
-                    <label for="new_name" class="block text-sm font-medium text-gray-700 mb-1">Bundle Name (Optional)</label>
-                    <input type="text" id="new_name" name="new_name" placeholder="Leave blank to use first item's name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <p class="text-xs text-gray-500 mt-1">Leave blank to use the first item's name with quantity.</p>
+                    <label for="new_name" class="block mb-1 text-sm font-medium text-gray-700">Bundle Name (Optional)</label>
+                    <input type="text" id="new_name" name="new_name" placeholder="Leave blank to use first item's name" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <p class="mt-1 text-xs text-gray-500">Leave blank to use the first item's name with quantity.</p>
                 </div>
                 
                 <div class="flex justify-end">
-                    <button type="button" onclick="closeBundleModal()" class="bg-gray-100 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2">
+                    <button type="button" onclick="closeBundleModal()" class="px-4 py-2 mr-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-green-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         Bundle Items
                     </button>
                 </div>
@@ -234,12 +234,12 @@
     </div>
 
     <!-- Delete Receipt Modal -->
-    <div id="deleteReceiptModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <div class="flex justify-between items-center mb-4">
+    <div id="deleteReceiptModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+        <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium text-red-600">Delete Receipt</h3>
                 <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-500">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
@@ -247,8 +247,8 @@
             
             <div class="mb-4">
                 <p class="text-gray-700">Are you sure you want to delete this receipt from <span class="font-medium">{{ $receipt->purchase_date->format('F j, Y') }}</span>?</p>
-                <p class="text-gray-700 mt-2">This action cannot be undone and will delete:</p>
-                <ul class="list-disc pl-5 mt-2 text-gray-600">
+                <p class="mt-2 text-gray-700">This action cannot be undone and will delete:</p>
+                <ul class="pl-5 mt-2 text-gray-600 list-disc">
                     <li>All receipt items and their categories</li>
                     <li>All category associations</li>
                     <li>The receipt record itself</li>
@@ -256,10 +256,10 @@
             </div>
             
             <div class="flex justify-end space-x-3">
-                <button type="button" onclick="closeDeleteModal()" class="bg-gray-100 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Cancel
                 </button>
-                <button type="button" onclick="confirmDelete()" class="bg-red-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                <button type="button" onclick="confirmDelete()" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                     Delete Receipt
                 </button>
             </div>
